@@ -1,0 +1,33 @@
+# Use an official Python image as the base image
+FROM python:3.12-slim
+
+# Set the working directory inside the container to /app
+WORKDIR /app
+
+# Install system dependencies for pyarrow and pandas
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# # Create a directory for data with full permissions
+# RUN mkdir -m 777 /data
+
+# Upgrade pip to the latest version
+RUN pip install --upgrade pip
+
+# Copy the source code directory from the host to the container
+COPY src ./src
+# Copy the setup.py file (for package installation) to the container
+COPY setup.py .
+# Copy the setup.cfg file (for package configuration) to the container
+COPY setup.cfg .
+
+# Copy the data directory (including processed/training_data.parquet)
+COPY data ./data
+
+# Install the package in editable mode (so changes in source reflect immediately)
+RUN pip install -e .
+
+# Set default command (optional)
+CMD ["python", "src/parquet/load_parquet.py"]
